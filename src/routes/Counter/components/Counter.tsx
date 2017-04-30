@@ -1,18 +1,28 @@
 import * as React from 'react'
-import PropTypes from 'prop-types'
+import {IncrementActionCreator} from "../modules/counter";
 
-export const Counter = (props) => (
-  <div style={{ margin: '0 auto' }} >
-    <h2>Counter: {props.counter}</h2>
-    <button className='btn btn-default' onClick={props.increment}>
-      Increment
-    </button>
-    {' '}
-    <button className='btn btn-default' onClick={props.doubleAsync}>
-      Double (Async)
-    </button>
-  </div>
-);
+interface CounterProps {
+  counter: number,
+  increment: IncrementActionCreator,
+  doubleAsync: Function
+}
+
+export class Counter extends React.Component<CounterProps, {}> {
+  render() {
+    return (
+      <div style={{ margin: '0 auto' }} >
+        <h2>Counter: {this.props.counter}</h2>
+        <button className='btn btn-default' onClick={e => this.props.increment()}>
+          Increment
+        </button>
+        {' '}
+        <button className='btn btn-default' onClick={e => this.props.doubleAsync()}>
+          Double (Async)
+        </button>
+      </div>
+    );
+  }
+}
 
 // Counter["propTypes"] = {
 //   counter     : PropTypes.number.isRequired,

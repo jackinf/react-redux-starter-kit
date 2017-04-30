@@ -1,4 +1,4 @@
-import {browserHistory} from 'react-router';
+import * as browserHistory from 'react-router/lib/browserHistory';
 
 // ------------------------------------
 // Constants
