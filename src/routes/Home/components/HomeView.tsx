@@ -1,6 +1,7 @@
-import React from 'react'
-import DuckImage from '../assets/Duck.jpg'
+import * as React from 'react';
+declare const require;
 import './HomeView.scss'
+const DuckImage = require('../assets/Duck.jpg');
 
 export const HomeView = () => (
   <div>
@@ -10,6 +11,6 @@ export const HomeView = () => (
       className='duck'
       src={DuckImage} />
   </div>
-)
+);
 
 export default HomeView
