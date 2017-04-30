@@ -16,7 +16,10 @@ const webpackConfig = {
   target  : 'web',
   devtool : project.compiler_devtool,
   resolve : {
-    root       : project.paths.client(),
+    modules       : [
+      project.paths.client(),
+      "node_modules"
+    ],
     extensions : ['', '.js', '.jsx', '.json', '.ts', '.tsx']
   },
   module : {}
@@ -93,15 +96,19 @@ if (__DEV__) {
   debug('Enabling plugins for production (OccurrenceOrder, Dedupe & UglifyJS).');
   webpackConfig.plugins.push(
     new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.optimize.DedupePlugin(),
+    // new webpack.optimize.DedupePlugin(),
     new webpack.optimize.UglifyJsPlugin({
+      sourceMap: true,
       compress : {
         unused    : true,
         dead_code : true,
         warnings  : false
       }
     }),
-    new webpack.optimize.AggressiveMergingPlugin()
+    new webpack.optimize.AggressiveMergingPlugin(),
+    new webpack.LoaderOptionsPlugin({
+      minimize: true
+   })
   )
 }
 
@@ -118,18 +125,15 @@ if (!__TEST__) {
 // Loaders
 // ------------------------------------
 // JavaScript / JSON
-webpackConfig.module.loaders = [{
+webpackConfig.module.rules = [{
   test    : /\.(ts|tsx)$/,
   exclude : /node_modules/,
-  loaders  : ["react-hot-loader", "awesome-typescript-loader"],
+  use  : ["react-hot-loader", "awesome-typescript-loader"],
 },{
   test    : /\.(js|jsx)$/,
   exclude : /node_modules/,
-  loader  : 'babel',
+  use  : 'babel',
   query   : project.compiler_babel
-}, {
-  test   : /\.json$/,
-  loader : 'json'
 }];
 
 // ------------------------------------
@@ -139,10 +143,10 @@ webpackConfig.module.loaders = [{
 // css-loader not to duplicate minimization.
 const BASE_CSS_LOADER = 'css?sourceMap&-minimize';
 
-webpackConfig.module.loaders.push({
+webpackConfig.module.rules.push({
   test    : /\.scss$/,
   exclude : null,
-  loaders : [
+  use : [
     'style',
     BASE_CSS_LOADER,
     'postcss',
@@ -150,10 +154,10 @@ webpackConfig.module.loaders.push({
   ]
 });
 
-webpackConfig.module.loaders.push({
+webpackConfig.module.rules.push({
   test    : /\.css$/,
   exclude : null,
-  loaders : [
+  use : [
     'style',
     BASE_CSS_LOADER,
     'postcss'
@@ -184,7 +188,7 @@ webpackConfig.postcss = [
 
 // File loaders
 /* eslint-disable */
-webpackConfig.module.loaders.push(
+webpackConfig.module.rules.push(
   { test: /\.woff(\?.*)?$/,  loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=application/font-woff' },
   { test: /\.woff2(\?.*)?$/, loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=application/font-woff2' },
   { test: /\.otf(\?.*)?$/,   loader: 'file?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=font/opentype' },
@@ -203,13 +207,13 @@ webpackConfig.module.loaders.push(
 // http://stackoverflow.com/questions/34133808/webpack-ots-parsing-error-loading-fonts/34133809#34133809
 if (!__DEV__) {
   debug('Applying ExtractTextPlugin to CSS loaders.');
-  webpackConfig.module.loaders.filter((loader) =>
-    loader.loaders && loader.loaders.find((name) => /css/.test(name.split('?')[0]))
-  ).forEach((loader) => {
-    const first = loader.loaders[0];
-    const rest = loader.loaders.slice(1);
-    loader.loader = ExtractTextPlugin.extract(first, rest.join('!'));
-    delete loader.loaders
+  webpackConfig.module.rules.filter((rule) =>
+    rule.use && rule.use.find((name) => /css/.test(name.split('?')[0]))
+  ).forEach((rule) => {
+    const first = rule.use[0];
+    const rest = rule.use.slice(1);
+    rule.use = ExtractTextPlugin.extract(first, rest.join('!'));
+    delete rule.use
   });
 
   webpackConfig.plugins.push(
