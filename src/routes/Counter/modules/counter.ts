@@ -1,59 +1,60 @@
+///<reference path="../../../../node_modules/redux-typescript-actions/lib/index.d.ts"/>
+import actionCreatorFactory, {
+  isType,
+  ActionCreator,
+  EmptyActionCreator,
+  AsyncActionCreators,
+  Failure
+} from "redux-typescript-actions";
+const actionCreator = actionCreatorFactory();
+
 // ------------------------------------
 // Constants
 // ------------------------------------
-export const COUNTER_INCREMENT = 'COUNTER_INCREMENT';
-export const COUNTER_DOUBLE_ASYNC = 'COUNTER_DOUBLE_ASYNC';
+export const COUNTER_INCREMENT: string = 'COUNTER_INCREMENT';
+export const COUNTER_DOUBLE_ASYNC: string = 'COUNTER_DOUBLE_ASYNC';
+export const RESET_COUNTER: string = 'RESET_COUNTER';
 
 // ------------------------------------
 // Actions
 // ------------------------------------
-export interface IncrementActionCreator {
-  (value?: number): any
-}
-export function increment(value: number = 1) {
-  return {
-    type    : COUNTER_INCREMENT,
-    payload : value
-  }
-}
 
-/*  This is a thunk, meaning it is a function that immediately
-    returns a function for lazy evaluation. It is incredibly useful for
-    creating async actions, especially when combined with redux-thunk! */
+export const increment: ActionCreator<number> = actionCreator<number>(COUNTER_INCREMENT);
+export const resetCounter: EmptyActionCreator = actionCreator(RESET_COUNTER);
+const doubleAsync: AsyncActionCreators<number, number, number> = actionCreator.async<number, number, number>(COUNTER_DOUBLE_ASYNC);
 
-export const doubleAsync = () => {
+export const counterDouble = () => {
   return (dispatch, getState) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        dispatch({
-          type    : COUNTER_DOUBLE_ASYNC,
-          payload : getState().counter
-        });
-        resolve()
-      }, 200)
-    })
+    dispatch(doubleAsync.started(1));
+    setTimeout(() => {
+      try {
+        // fetch.get ...
+        const resp = getState().counter;
+        dispatch(doubleAsync.done(resp));
+      } catch (e) {
+        const resp: Failure<number, number> = {params: 1, error: 1};
+        dispatch(doubleAsync.failed(resp)); // failed to fetch.get
+      }
+    }, 500);
   }
-};
-
-export const actions = {
-  increment,
-  doubleAsync
-};
-
-// ------------------------------------
-// Action Handlers
-// ------------------------------------
-const ACTION_HANDLERS = {
-  [COUNTER_INCREMENT]    : (state, action) => state + action.payload,
-  [COUNTER_DOUBLE_ASYNC] : (state, action) => state * 2
 };
 
 // ------------------------------------
 // Reducer
 // ------------------------------------
-const initialState = 0;
-export default function counterReducer (state = initialState, action) {
-  const handler = ACTION_HANDLERS[action.type];
 
-  return handler ? handler(state, action) : state
+const initialState = 0;
+export default function counterReducer(state: number = initialState, action) {
+  if (isType(action, increment)) { // same as action.type === increment.type
+    return state + action.payload;
+  }
+  else if (isType(action, resetCounter)) {
+    return 0;
+  }
+  else if (isType(action, doubleAsync.done)) {
+    return state * 2;
+  }
+  else {
+    return state;
+  }
 }

@@ -1,10 +1,10 @@
 import * as React from 'react'
-import {IncrementActionCreator} from "../modules/counter";
 
 interface CounterProps {
   counter: number,
-  increment: IncrementActionCreator,
-  doubleAsync: Function
+  increment: Function,
+  counterDouble: Function,
+  resetCounter: Function
 }
 
 export class Counter extends React.Component<CounterProps, {}> {
@@ -16,8 +16,12 @@ export class Counter extends React.Component<CounterProps, {}> {
           Increment
         </button>
         {' '}
-        <button className='btn btn-default' onClick={e => this.props.doubleAsync()}>
+        <button className='btn btn-default' onClick={e => this.props.counterDouble()}>
           Double (Async)
+        </button>
+        {' '}
+        <button className='btn btn-default' onClick={e => this.props.resetCounter()}>
+         Reset
         </button>
       </div>
     );
